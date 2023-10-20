@@ -1,8 +1,24 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include <unistd.h>
+#include <getopt.h>
+
+#include <ctype.h>
 #define PROGRAM_NAME "gut"
 #define FILE_NAME "numbers.txt"
+
+
+int s_is_numeric(char *s){
+    int len = sizeof(*s)/sizeof(s[0]);
+    for (int i = 0; i < len; i++){
+        if (!isdigit(s[i])){
+            return 0;
+        }
+    }
+    return 1;
+}
 
 int copy_stream(FILE *src, FILE *dst){
     char c;
@@ -11,12 +27,46 @@ int copy_stream(FILE *src, FILE *dst){
     }
 }
 
+
 int main(int argc, char **argv){
+    //Program options. Will later be moved to a struct.
+    int line_index = -1;
     if (argc <= 1){
-        //printf("Usage: gut [OPTION] [FILE]...\n");
+        printf("No arguments provided. Reading and writing to stdin and stdout.\n");
         copy_stream(stdin,stdout);
         return 0;
     }
+    //Get command line flags and set program options.
+    
+    char c;
+
+    opterr = 0;
+
+    while ((c = getopt(argc,argv,"n:")) != EOF){
+        switch (c){
+            case 'n':
+                line_index = atoi(optarg);
+                //If the line index is 0, a non-numeric argument was provided.
+                break;
+            case '?':
+                if (optopt == 'n'){
+                    fprintf(stderr,"Option '-%c' requires an argument.\n",optopt);
+                }
+                else if (isprint(optopt)){
+                    fprintf(stderr,"Unknown option '-%c'.\n",optopt);
+                }
+                else {
+                    fprintf(stderr,"Arguments contained an invalid character. ('\\x%x')\n",optopt);
+                }
+                return 1;
+        }
+    }
+    //Non-option arguments shall be treated as files.
+    // for (; optind < argc; optind++){
+        
+    // }
+    printf("%i\n",line_index);
+    return 0;
     // If argc is 2, user provided either a flag or a file.
     // Figure out flag parsing...
     FILE *fp = fopen(FILE_NAME,"r");
@@ -35,7 +85,7 @@ int main(int argc, char **argv){
     //Following code counts the number of '\n' characters in a file to determine the number of lines.
     //Sequential read sounds cool ;)
     int lines = 0;
-    char c;
+    //char c;
     char *buf = malloc(sizeof(char)*20);
     while ((c = getc(fp)) != EOF){
         if (lines == line_to_read && c != '\n'){
