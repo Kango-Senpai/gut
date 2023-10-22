@@ -15,15 +15,16 @@ void copy_stream(FILE *src, FILE *dst){
     while ((c = getc(src)) != EOF){
         putc(c,dst);
     }
+    return;
 }
 
 void process_stream(FILE *stream, int li, int tl, int hl){// line_index, tail_lines, head_lines
     int head_line = li - hl;
     int tail_line = li + tl;
     char c;
-    int lines = 0;
+    int lines = 1;
     while ((c = getc(stream)) != EOF){
-        if ((lines >= head_line && lines <= tail_line) && c != '\n'){
+        if ((lines >= head_line && lines <= tail_line)){ //Removed  "&& c != '\n'". May cause problems with extra lines.
             putc(c,stdout);
         }
         if (c == '\n'){
@@ -44,14 +45,14 @@ int main(int argc, char **argv){
         return 0;
     }
     //Program options. Will later be moved to a struct. stuct line_options???
-    int line_index = -1, head_lines = -1, tail_lines = -1;
+    int line_index = 0, head_lines = 5, tail_lines = 5;
     char c;
 
     opterr = 0;
     //Get command line flags and set program options.
-    while ((c = getopt(argc,argv,"b:n:u:")) != EOF){
+    while ((c = getopt(argc,argv,"d:n:u:")) != EOF){
         switch (c){
-            case 'b':
+            case 'd':
                 tail_lines = atoi(optarg);
                 break;
             case 'n':
@@ -84,10 +85,13 @@ int main(int argc, char **argv){
             printf("Unable to read file: %s\n",argv[optind]);
             continue;
         }
+        process_stream(stream,line_index,tail_lines,head_lines);
     }
     if (stream == NULL){
         stream = stdin;
+        process_stream(stream,line_index,tail_lines,head_lines);
     }
+    
     // If argc is 2, user provided either a flag or a file.
     // Figure out lag parsing...
     
