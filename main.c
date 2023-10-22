@@ -10,43 +10,56 @@
 #define FILE_NAME "numbers.txt"
 
 
-int s_is_numeric(char *s){
-    int len = sizeof(*s)/sizeof(s[0]);
-    for (int i = 0; i < len; i++){
-        if (!isdigit(s[i])){
-            return 0;
-        }
-    }
-    return 1;
-}
-
-int copy_stream(FILE *src, FILE *dst){
+void copy_stream(FILE *src, FILE *dst){
     char c;
     while ((c = getc(src)) != EOF){
         putc(c,dst);
     }
 }
 
+void process_stream(FILE *stream, int li, int tl, int hl){// line_index, tail_lines, head_lines
+    int head_line = li - hl;
+    int tail_line = li + tl;
+    char c;
+    int lines = 0;
+    while ((c = getc(stream)) != EOF){
+        if ((lines >= head_line && lines <= tail_line) && c != '\n'){
+            putc(c,stdout);
+        }
+        if (c == '\n'){
+            lines++;
+        }
+        if (lines > tail_line){
+            break;
+        }
+    }
+    return;
+}
+
 
 int main(int argc, char **argv){
-    //Program options. Will later be moved to a struct.
-    int line_index = -1;
     if (argc <= 1){
-        printf("No arguments provided. Reading and writing to stdin and stdout.\n");
+        printf("No arguments provided, reading from stdin.\n");
         copy_stream(stdin,stdout);
         return 0;
     }
-    //Get command line flags and set program options.
-    
+    //Program options. Will later be moved to a struct. stuct line_options???
+    int line_index = -1, head_lines = -1, tail_lines = -1;
     char c;
 
     opterr = 0;
-
-    while ((c = getopt(argc,argv,"n:")) != EOF){
+    //Get command line flags and set program options.
+    while ((c = getopt(argc,argv,"b:n:u:")) != EOF){
         switch (c){
+            case 'b':
+                tail_lines = atoi(optarg);
+                break;
             case 'n':
                 line_index = atoi(optarg);
                 //If the line index is 0, a non-numeric argument was provided.
+                break;
+            case 'u':
+                head_lines = atoi(optarg);
                 break;
             case '?':
                 if (optopt == 'n'){
@@ -62,50 +75,27 @@ int main(int argc, char **argv){
         }
     }
     //Non-option arguments shall be treated as files.
-    // for (; optind < argc; optind++){
-        
-    // }
-    printf("%i\n",line_index);
-    return 0;
-    // If argc is 2, user provided either a flag or a file.
-    // Figure out flag parsing...
-    FILE *fp = fopen(FILE_NAME,"r");
-    if (fp == NULL){
-        printf("Couldn't read file: %s.\n",FILE_NAME);
-        return 1;
+    FILE *stream = NULL;
+    //Try to parse remaining arguments as file names. If the stream is never set, it is assigned stdin.
+    //TODO:
+    for (; optind < argc; optind++){
+        stream = fopen(argv[optind],"r");
+        if (stream == NULL){
+            printf("Unable to read file: %s\n",argv[optind]);
+            continue;
+        }
     }
-    // switch (argc){
-    //     case 2:
-    //         file_to_stdout(fp);
-    // }
-    long line_to_read = 1;
-    line_to_read -= 1 ? line_to_read > 0 : 0;
+    if (stream == NULL){
+        stream = stdin;
+    }
+    // If argc is 2, user provided either a flag or a file.
+    // Figure out lag parsing...
+    
     //printf("Reading line %d from %s.\n",line_to_read,FILE_NAME);
     
     //Following code counts the number of '\n' characters in a file to determine the number of lines.
     //Sequential read sounds cool ;)
-    int lines = 0;
-    //char c;
-    char *buf = malloc(sizeof(char)*20);
-    while ((c = getc(fp)) != EOF){
-        if (lines == line_to_read && c != '\n'){
-            strcat(buf,&c);
-        }
-        if (c == '\n'){
-            lines++;
-        }
-        if (lines > line_to_read){
-            break;
-        }
-    }
     
-    if (line_to_read > lines){
-        printf("Line index is greater than file length.\n");
-    }
-    else{
-        printf("Line %i: %s",line_to_read,buf);
-    }
-    free(buf);
-    fclose(fp);
+    fclose(stream);
     return 0;
 }
