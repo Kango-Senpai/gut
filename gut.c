@@ -37,6 +37,22 @@ void process_stream(FILE *stream, int li, int tl, int hl){// line_index, tail_li
     return;
 }
 
+void print_help(){
+    puts(
+        "Usage: gut [OPTION]... [FILE]...\n"
+        "Print all lines of FILE or chunks of FILE.\n"
+        "\n"
+        "With no FILE, or when FILE is -, read standard input.\n"
+        "With no OPTION gut outputs the entire file to stdout.\n"
+        "-n NUM		set the line index to NUM\n"
+        "-u NUM		read NUM lines above the index\n"
+        "-d NUM 	read NUM lines below the index\n"
+        "\n"
+        "https://github.com/Kango-Senpai/gut"
+    );
+
+    return;
+}
 
 int main(int argc, char **argv){
     if (argc <= 1){
@@ -68,6 +84,7 @@ int main(int argc, char **argv){
                 }
                 else if (isprint(optopt)){
                     fprintf(stderr,"Unknown option '-%c'.\n",optopt);
+                    print_help();
                 }
                 else {
                     fprintf(stderr,"Arguments contained an invalid character. ('\\x%x')\n",optopt);
