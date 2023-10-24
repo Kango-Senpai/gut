@@ -46,7 +46,7 @@ void print_help(){
         "With no OPTION gut outputs the entire file to stdout.\n"
         "-n NUM		set the line index to NUM\n"
         "-u NUM		read NUM lines above the index\n"
-        "-d NUM 	read NUM lines below the index\n"
+        "-d NUM         read NUM lines below the index\n"
         "\n"
         "https://github.com/Kango-Senpai/gut"
     );
