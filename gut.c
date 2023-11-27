@@ -86,7 +86,7 @@ int main(int argc, char **argv){
 
     opterr = 0;
     //Get command line flags and set program options.
-    while ((*c = getopt(argc,argv,"d:n:u:")) != EOF){
+    while ((*c = getopt(argc,argv,"d:n:u:ch")) != EOF){
         switch (*c){
             case 'd':
                 tail_lines = atoi(optarg);
