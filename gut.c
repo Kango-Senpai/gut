@@ -38,7 +38,7 @@ void process_stream(FILE *stream, int li, int tl, int hl){// line_index, tail_li
 }
 
 void process_chunk(FILE *stream, int li, int hl) { //line_index, header_lines
-    char c, last_c = {NULL};
+    char c, last_c;
     int lines = 1;
     while ((c = getc(stream)) != EOF){
         if (lines >= (li-hl)){
@@ -61,7 +61,7 @@ void print_help(){
         "Print all lines of FILE or chunks of FILE.\n"
         "\n"
         "With no FILE, or when FILE is -, read standard input.\n"
-        "With no OPTION gut outputs the entire file to stdout.\n"
+        "With no OPTION gut outputs the first five lines to stdout.\n"
         "-n NUM		set the line index to NUM\n"
         "-u NUM		read NUM lines above the index\n"
         "-d NUM         read NUM lines below the index\n"
@@ -100,6 +100,10 @@ int main(int argc, char **argv){
                 break;
             case 'c':
                 chunk_mode = true;
+            case 'h':
+                print_help();
+                free(c);
+                return 0;
             case '?':
                 if (optopt == 'n'){
                     fprintf(stderr,"Option '-%c' requires an argument.\n",optopt);
