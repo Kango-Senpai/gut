@@ -6,9 +6,9 @@
 #include <getopt.h>
 
 #include <ctype.h>
+#include <stdbool.h>
 #define PROGRAM_NAME "gut"
 #define FILE_NAME "numbers.txt"
-
 
 void copy_stream(FILE *src, FILE *dst){
     char c;
@@ -18,7 +18,7 @@ void copy_stream(FILE *src, FILE *dst){
     return;
 }
 
-void process_stream(FILE *stream, int li, int tl, int hl){// line_index, tail_lines, head_lines
+void process_stream(FILE *stream, int li, int tl, int hl){// line_index, tail_lines, header_lines
     int head_line = li - hl;
     int tail_line = li + tl;
     char c;
@@ -37,6 +37,24 @@ void process_stream(FILE *stream, int li, int tl, int hl){// line_index, tail_li
     return;
 }
 
+void process_chunk(FILE *stream, int li, int hl) { //line_index, header_lines
+    char c, last_c = {NULL};
+    int lines = 1;
+    while ((c = getc(stream)) != EOF){
+        if (lines >= (li-hl)){
+            putc(c,stdout);
+        }
+        if (c == '\n'){
+            lines++;
+        }
+        if(c == '\n' && last_c == '\n'){
+            break;
+        }
+        last_c = c;
+    }
+    return;
+}
+
 void print_help(){
     puts(
         "Usage: gut [OPTION]... [FILE]...\n"
@@ -47,6 +65,7 @@ void print_help(){
         "-n NUM		set the line index to NUM\n"
         "-u NUM		read NUM lines above the index\n"
         "-d NUM         read NUM lines below the index\n"
+        "-c         chunk mode. Read until the next empty line.\n"
         "\n"
         "https://github.com/Kango-Senpai/gut"
     );
@@ -62,12 +81,13 @@ int main(int argc, char **argv){
     }
     //Program options. Will later be moved to a struct. stuct line_options???
     int line_index = 0, head_lines = 5, tail_lines = 5;
-    char c;
+    bool chunk_mode = false;
+    char *c = malloc(sizeof(char));
 
     opterr = 0;
     //Get command line flags and set program options.
-    while ((c = getopt(argc,argv,"d:n:u:")) != EOF){
-        switch (c){
+    while ((*c = getopt(argc,argv,"d:n:u:")) != EOF){
+        switch (*c){
             case 'd':
                 tail_lines = atoi(optarg);
                 break;
@@ -78,6 +98,8 @@ int main(int argc, char **argv){
             case 'u':
                 head_lines = atoi(optarg);
                 break;
+            case 'c':
+                chunk_mode = true;
             case '?':
                 if (optopt == 'n'){
                     fprintf(stderr,"Option '-%c' requires an argument.\n",optopt);
@@ -92,6 +114,7 @@ int main(int argc, char **argv){
                 return 1;
         }
     }
+    free(c);
     //Non-option arguments shall be treated as files.
     FILE *stream = NULL;
     //Try to parse remaining arguments as file names. If the stream is never set, it is assigned stdin.
