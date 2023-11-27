@@ -4,3 +4,4 @@ super_pat
 run.sh
 creds
 .vscode/
+bin/
