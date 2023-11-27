@@ -37,17 +37,18 @@ void process_stream(FILE *stream, int li, int tl, int hl){// line_index, tail_li
     return;
 }
 
-void process_chunk(FILE *stream, int li, int hl) { //line_index, header_lines
+void process_chunk(FILE *stream, int li, int tl, int hl) {
     char c, last_c;
+    int header_line = li-hl;
     int lines = 1;
     while ((c = getc(stream)) != EOF){
-        if (lines >= (li-hl)){
+        if (lines >= header_line){
             putc(c,stdout);
         }
         if (c == '\n'){
             lines++;
         }
-        if(c == '\n' && last_c == '\n'){
+        if(c == '\n' && last_c == '\n' && lines > li){
             break;
         }
         last_c = c;
@@ -79,14 +80,14 @@ int main(int argc, char **argv){
         copy_stream(stdin,stdout);
         return 0;
     }
+    void (*process_function_ptr)(FILE*,int,int,int) = &process_stream; //Set the default processing method. This will change if '-c' is passed.
     //Program options. Will later be moved to a struct. stuct line_options???
     int line_index = 0, head_lines = 5, tail_lines = 5;
-    bool chunk_mode = false;
     char *c = malloc(sizeof(char));
 
     opterr = 0;
     //Get command line flags and set program options.
-    while ((*c = getopt(argc,argv,"d:n:u:ch")) != EOF){
+    while ((*c = getopt(argc,argv,"cd:hn:u:")) != EOF){
         switch (*c){
             case 'd':
                 tail_lines = atoi(optarg);
@@ -99,7 +100,8 @@ int main(int argc, char **argv){
                 head_lines = atoi(optarg);
                 break;
             case 'c':
-                chunk_mode = true;
+                process_function_ptr = &process_chunk;
+                break;
             case 'h':
                 print_help();
                 free(c);
@@ -129,11 +131,11 @@ int main(int argc, char **argv){
             printf("Unable to read file: %s\n",argv[optind]);
             continue;
         }
-        process_stream(stream,line_index,tail_lines,head_lines);
+        (*process_function_ptr)(stream,line_index,tail_lines,head_lines);
     }
     if (stream == NULL){
         stream = stdin;
-        process_stream(stream,line_index,tail_lines,head_lines);
+        (*process_function_ptr)(stream,line_index,tail_lines,head_lines);
     }
     
     // If argc is 2, user provided either a flag or a file.
