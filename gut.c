@@ -10,6 +10,10 @@
 #define PROGRAM_NAME "gut"
 #define FILE_NAME "numbers.txt"
 
+#define PROGRAM_NAME "gut"
+#define FILE_NAME "numbers.txt"
+
+
 void copy_stream(FILE *src, FILE *dst){
     char c;
     while ((c = getc(src)) != EOF){
@@ -74,6 +78,7 @@ void print_help(){
     return;
 }
 
+
 int main(int argc, char **argv){
     if (argc <= 1){
         printf("No arguments provided, reading from stdin.\n");
@@ -113,6 +118,7 @@ int main(int argc, char **argv){
                 else if (isprint(optopt)){
                     fprintf(stderr,"Unknown option '-%c'.\n",optopt);
                     print_help();
+
                 }
                 else {
                     fprintf(stderr,"Arguments contained an invalid character. ('\\x%x')\n",optopt);
@@ -136,6 +142,7 @@ int main(int argc, char **argv){
     if (stream == NULL){
         stream = stdin;
         (*process_function_ptr)(stream,line_index,tail_lines,head_lines);
+
     }
     
     // If argc is 2, user provided either a flag or a file.
