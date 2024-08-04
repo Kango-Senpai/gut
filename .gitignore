@@ -1,7 +1,3 @@
 docs/
-pat
-super_pat
-run.sh
-creds
 .vscode/
-bin/
+build/
